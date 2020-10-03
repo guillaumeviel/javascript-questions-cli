@@ -34,8 +34,8 @@ const getQuizz = async (lang = 'en') => {
     ''}.md`
   const { body } = await got(url)
   return body
-    .split(/---|\* \* \* \* \*/)
-    .slice(1)
+    .split(/---|\# \# \# \# \#/)
+    .slice(4)
     .map(s => s && s.trim())
     .filter(s => !!s)
     .map(section => {
