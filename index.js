@@ -65,7 +65,7 @@ const getQuizz = async (lang = 'en') => {
     })
 }
 
-const clearScreen = () => process.stdout.write('\033c\033[3J')
+const clearScreen = () => process.stdout.write('\033[H\033[2J\033c\033[3J')
 
 const showQuestion = async q => {
   clearScreen()
