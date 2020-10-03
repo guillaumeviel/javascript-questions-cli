@@ -89,6 +89,10 @@ const showQuestion = async q => {
     process.stdout.write(chalk.green.bold('\tCORRECT!'))
   } else {
     process.stdout.write(chalk.red.bold('\tINCORRECT!'))
+    process.stdout.write('\n\n')
+    let answerIndex = q.answer.charCodeAt(0) - 'A'.charCodeAt(0)
+    let answerText = q.answer + '. ' + q.choices[answerIndex].label
+    process.stdout.write(chalk.underline('Correct answer:') + ' ' + answerText)
   }
   process.stdout.write('\n\n')
   process.stdout.write(marked(q.explanation))
