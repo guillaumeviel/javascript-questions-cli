@@ -73,25 +73,32 @@ const showQuestion = async q => {
   process.stdout.write('\n\n')
   process.stdout.write(marked(q.question))
   process.stdout.write('\n')
+  let choices = q.choices.map(c => ({
+    title: `${c.choice}. ${c.label}`,
+    value: c.choice
+  }))
+  choices.push({ 
+    title: 'Skip',
+    value: 'x'
+  })
   const { choice } = await prompts({
     name: 'choice',
     type: 'select',
     message: '',
-    choices: q.choices.map(c => ({
-      title: `${c.choice}. ${c.label}`,
-      value: c.choice
-    }))
+    choices: choices
   })
   process.stdout.write('\n')
+  let answerIndex = q.answer.charCodeAt(0) - 'A'.charCodeAt(0)
+  let answerText = q.answer + '. ' + q.choices[answerIndex].label
   if (choice === undefined) {
     return null
-  } else if (q.answer === choice) {
+  } else if (choice === 'x') {
+    process.stdout.write(chalk.underline('Correct answer:') + ' ' + answerText)
+  } else if (choice === q.answer) {
     process.stdout.write(chalk.green.bold('\tCORRECT!'))
   } else {
     process.stdout.write(chalk.red.bold('\tINCORRECT!'))
     process.stdout.write('\n\n')
-    let answerIndex = q.answer.charCodeAt(0) - 'A'.charCodeAt(0)
-    let answerText = q.answer + '. ' + q.choices[answerIndex].label
     process.stdout.write(chalk.underline('Correct answer:') + ' ' + answerText)
   }
   process.stdout.write('\n\n')
