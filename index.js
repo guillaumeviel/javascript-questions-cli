@@ -99,6 +99,15 @@ const showQuestion = async q => {
   return choice
 }
 
+const selectQuestion = remainingSet => {
+  const index = Math.floor(Math.random() * Math.floor(remainingSet.size))
+  const iterator = remainingSet.values()
+  for (let i = 0; i < index - 1; i++) { 
+    iterator.next()
+  }
+  return iterator.next().value
+}
+
 const save = async state => {
   const { value } = await prompts({
     type: 'confirm',
@@ -107,6 +116,8 @@ const save = async state => {
     initial: true
   })
   if (value) {
+    state.remaining = Array.from(state.remaining)
+    state.known = Array.from(state.known)
     await fs.writeFile(RESUME_FILE, JSON.stringify(state))
     process.stdout.write(`Progress saved to ${chalk.bold(RESUME_FILE)}.`)
   } else {
@@ -114,23 +125,28 @@ const save = async state => {
   }
 }
 
-const resume = async () => {
+const resume = async (quizzLength) => {
   try {
     const state = JSON.parse(await fs.readFile(RESUME_FILE))
     const { value } = await prompts({
       type: 'confirm',
       name: 'value',
-      message: `Found previous session, do you want to resume to question #${state.index +
-        1}?`,
+      message: `Found previous session, do you want to resume?`,
       initial: true
     })
     if (value) {
+      state.remaining = new Set(state.remaining)
+      state.known = new Set(state.known)
       return state
     }
   } catch (err) {
     // No file found, or invalid: restart
   }
-  return { index: 0, history: [] }
+  return { 
+    remaining: new Set([...Array(quizzLength).keys()]),
+    known: new Set(),
+    history: [] 
+  }
 }
 
 const finished = async state => {
@@ -182,17 +198,21 @@ const finished = async state => {
 
 const main = async (lang = 'en') => {
   const quizz = await getQuizz(lang)
-  const state = await resume()
-  while (state.index < quizz.length) {
-    const q = quizz[state.index]
+  const state = await resume(quizz.length)
+  while (state.known.size < quizz.length) {
+    const index = selectQuestion(state.remaining)
+    const q = quizz[index]
     const choice = await showQuestion(q)
     if (choice === null) {
       break // Pressed Ctrl+C or Ctrl+D
     }
+    if (choice === q.answer) {
+      state.remaining.delete(index + 1)
+      state.known.add(index + 1)
+    }
     state.history.push({ choice, valid: q.answer === choice })
-    state.index++
     // There are more questions: ask to stop/continue
-    if (state.index < quizz.length) {
+    if (state.known.size < quizz.length) {
       process.stdout.write('\n')
       const { next } = await prompts({
         type: 'confirm',
