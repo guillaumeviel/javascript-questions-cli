@@ -157,10 +157,10 @@ const resume = async (quizzLength) => {
 }
 
 const finished = async state => {
-  process.stdout.write(chalk.bold('Your answers:\n'))
-  state.history.forEach(({ choice, valid }) => {
+  process.stdout.write(chalk.bold('\nYour answers:\n'))
+  state.history.forEach(({ question, choice, valid }) => {
     process.stdout.write(
-      `- ${choice} (${
+      `- ${question}. ${choice} (${
         valid ? chalk.green('correct') : chalk.red('incorrect')
       })\n`
     )
@@ -217,7 +217,7 @@ const main = async (lang = 'en') => {
       state.remaining.delete(index + 1)
       state.known.add(index + 1)
     }
-    state.history.push({ choice, valid: q.answer === choice })
+    state.history.push({ question: index + 1, choice, valid: choice === q.answer })
     // There are more questions: ask to stop/continue
     if (state.known.size < quizz.length) {
       process.stdout.write('\n')
