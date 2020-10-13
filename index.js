@@ -107,12 +107,14 @@ const showQuestion = async q => {
 }
 
 const selectQuestion = remainingSet => {
-  const index = Math.floor(Math.random() * Math.floor(remainingSet.size))
+  const randomValue = Math.floor(Math.random() * remainingSet.size)
+
   const iterator = remainingSet.values()
-  for (let i = 0; i < index - 1; i++) { 
-    iterator.next()
+  let selectedQuestion = iterator.next().value;
+  for (let i = 0; i < randomValue; i++) { 
+    selectedQuestion = iterator.next().value
   }
-  return iterator.next().value
+  return selectedQuestion
 }
 
 const save = async state => {
@@ -124,7 +126,7 @@ const save = async state => {
   })
   if (value) {
     state.remaining = Array.from(state.remaining)
-    state.known = Array.from(state.known)
+    state.completed = Array.from(state.completed)
     await fs.writeFile(RESUME_FILE, JSON.stringify(state))
     process.stdout.write(`Progress saved to ${chalk.bold(RESUME_FILE)}.`)
   } else {
@@ -143,15 +145,15 @@ const resume = async (quizzLength) => {
     })
     if (value) {
       state.remaining = new Set(state.remaining)
-      state.known = new Set(state.known)
+      state.completed = new Set(state.completed)
       return state
     }
   } catch (err) {
     // No file found, or invalid: restart
   }
   return { 
-    remaining: new Set([...Array(quizzLength).keys()]),
-    known: new Set(),
+    remaining: new Set([...Array(quizzLength).keys()].map(x => x + 1)),
+    completed: new Set(),
     history: [] 
   }
 }
@@ -206,20 +208,20 @@ const finished = async state => {
 const main = async (lang = 'en') => {
   const quizz = await getQuizz(lang)
   const state = await resume(quizz.length)
-  while (state.known.size < quizz.length) {
+  while (state.completed.size < quizz.length) {
     const index = selectQuestion(state.remaining)
-    const q = quizz[index]
+    const q = quizz[index - 1]
     const choice = await showQuestion(q)
     if (choice === null) {
       break // Pressed Ctrl+C or Ctrl+D
     }
     if (choice === q.answer) {
-      state.remaining.delete(index + 1)
-      state.known.add(index + 1)
+      state.remaining.delete(index)
+      state.completed.add(index)
     }
     state.history.push({ question: index + 1, choice, valid: choice === q.answer })
     // There are more questions: ask to stop/continue
-    if (state.known.size < quizz.length) {
+    if (state.completed.size < quizz.length) {
       process.stdout.write('\n')
       const { next } = await prompts({
         type: 'confirm',
@@ -232,7 +234,7 @@ const main = async (lang = 'en') => {
       }
     }
   }
-  if (state.index < quizz.length - 1) {
+  if (state.completed.size < quizz.length) {
     await save(state)
   } else {
     await finished(state)
