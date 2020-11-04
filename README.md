@@ -1,6 +1,6 @@
 # JavaScript Questions Random CLI
 
-Takes questions from [lydiahallie/javascript-questions](https://github.com/lydiahallie/javascript-questions) and starts a randomized quizz in your terminal. You can stop whenever you want, your progress can be saved and resumed next time.
+Takes questions from [lydiahallie/javascript-questions](https://github.com/lydiahallie/javascript-questions) and starts a randomized quiz in your terminal. The quiz will randomly pick questions among the ones that haven't been answered correctly yet. You can stop whenever you want, your progress can be saved and resumed next time.
 
 Based on the work from Nicolas Chambrier: [naholyr/javascript-questions-cli](https://github.com/naholyr/javascript-questions-cli)
 
