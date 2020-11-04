@@ -106,6 +106,43 @@ const showQuestion = async q => {
   return choice
 }
 
+const getStats = state => {
+  const nbValid = state.history.reduce((n, { valid }) => (valid ? n + 1 : n), 0)
+  const nbQuestions = state.history.length
+  const nbErrors = nbQuestions - nbValid
+  const percent = Math.round((nbValid * 100) / nbQuestions)
+  const quizzSize = nbValid + state.remaining.size
+
+  return { nbValid, nbQuestions, nbErrors, percent, quizzSize }
+}
+
+const showScore = stats => {
+  const score = `${stats.nbValid}/${stats.nbQuestions} (${stats.percent}%)`
+  
+  process.stdout.write(
+    chalk.bold(
+      `Your score: ${
+        stats.percent > 75
+          ? chalk.green(score)
+          : stats.percent > 50
+          ? score
+          : chalk.red(score)
+      }\n\n`
+    )
+  )
+}
+
+const showProgress = state => {
+  const stats = getStats(state)
+
+  process.stdout.write('\n')
+  process.stdout.write(chalk.bold.underline('Progress'))
+  process.stdout.write('\n\n')
+  process.stdout.write(`Completed: ${stats.nbValid} / ${stats.quizzSize}\n`)
+  process.stdout.write(`Errors: ${stats.nbErrors}\n`)
+  showScore(stats)
+}
+
 const selectQuestion = remainingSet => {
   const randomValue = Math.floor(Math.random() * remainingSet.size)
 
@@ -168,21 +205,7 @@ const finished = async state => {
     )
   })
   process.stdout.write('\n')
-  const nbValid = state.history.reduce((n, { valid }) => (valid ? n + 1 : n), 0)
-  const nbQuestions = state.history.length
-  const percent = Math.round((nbValid * 100) / nbQuestions)
-  const score = `${nbValid}/${nbQuestions} (${percent}%)`
-  process.stdout.write(
-    chalk.bold(
-      `Your score: ${
-        percent > 75
-          ? chalk.green(score)
-          : percent > 50
-          ? score
-          : chalk.red(score)
-      }\n\n`
-    )
-  )
+  showScore(getStats(state))
   try {
     await fs.unlink(RESUME_FILE)
     process.stdout.write(
@@ -222,6 +245,7 @@ const main = async (lang = 'en') => {
     state.history.push({ question: index + 1, choice, valid: choice === q.answer })
     // There are more questions: ask to stop/continue
     if (state.completed.size < quizz.length) {
+      showProgress(state)
       process.stdout.write('\n')
       const { next } = await prompts({
         type: 'confirm',

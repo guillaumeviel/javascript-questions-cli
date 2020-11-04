@@ -1,6 +1,6 @@
 {
   "name": "javascript-questions-random-cli",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "JavaScript quizz, right in your terminal",
   "main": "index.js",
   "scripts": {
