@@ -1,6 +1,6 @@
 {
   "name": "javascript-questions-random-cli",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "JavaScript quizz, right in your terminal",
   "main": "index.js",
   "scripts": {
@@ -11,6 +11,7 @@
   },
   "author": "Guillaume Viel",
   "license": "ISC",
+  "repository": "github:guillaumeviel/javascript-questions-cli",
   "dependencies": {
     "chalk": "^2.4.2",
     "got": "^9.6.0",
